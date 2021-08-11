@@ -1,0 +1,26 @@
+#!/bin/sh
+# Query local syncthing REST API
+# Numeric argument is treated as depth or page
+# String as path/filename
+name="$(basename $0)"
+test $# -eq 0 && echo "Usage: $name <command> [args...]" && exit 1
+defaultfolder=data
+subscript="$(which "$name-$1" 2>/dev/null)"
+if test -f "$subscript"
+then shift && "$subscript" "$@"
+else
+  apikey=$(grep apikey ${XDG_CONFIG_HOME:-$HOME/.config}/syncthing/config.xml | cut -d '>' -f2 | cut -d '<' -f1)
+  case "$1" in
+    (browse|completion|file|ignores|need|status)
+      for arg in "${@:2}"
+      do case "$arg" in ([0-9]) depth=$arg;; (*) path="$arg";; esac
+      done
+      query=$(echo "db/$1?folder=$(expr "${path%%/*}" \& "$path" \| "$defaultfolder")
+        $(expr levels \& "$1" = "browse" \| page)=${depth:-1}
+        $(case "$path" in (*/*) echo "$(expr "prefix" \& "$1" = "browse" \| "$1")=${path#*/}";; esac)" |
+          tr -d ' ' | paste -s -d'&');;
+    (*) query="$1";;
+  esac
+  shift
+  curl --silent -H 'Content-Type: application/json' -H "X-API-Key: $apikey" "http://localhost:8384/rest/$query" "$@" | bat --style=numbers -l json
+fi

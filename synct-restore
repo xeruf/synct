@@ -1,0 +1,3 @@
+#!/bin/sh
+# Move a conflicted/archived file to its original location
+mv "$1" "$(echo "$1" | synct-unarchive)"
