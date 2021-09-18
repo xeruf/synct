@@ -3,7 +3,11 @@
 # Numeric argument is treated as depth or page
 # String as path/filename
 name="$(basename $0)"
-test $# -eq 0 && echo "Usage: $name <command> [args...]" && exit 1
+test $# -eq 0 && echo "Usage:
+  $name <command> [args...]
+  $name <rest-endpoint>
+    The endpoint must no include /rest/
+    Check out the api: https://docs.syncthing.net/dev/rest.html" && exit 1
 defaultfolder=data
 subscript="$(which "$name-$1" 2>/dev/null)"
 if test -f "$subscript"
