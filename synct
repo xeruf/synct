@@ -9,7 +9,7 @@ test $# -eq 0 && echo "Usage:
     The endpoint must no include /rest/
     Check out the api: https://docs.syncthing.net/dev/rest.html" && exit 1
 defaultfolder=data
-subscript="$(which "$name-$1" 2>/dev/null)"
+subscript="$(test -e "$0-$1" && echo "$0-$1" || which "$name-$1" 2>/dev/null)"
 if test -f "$subscript"
 then shift && "$subscript" "$@"
 else

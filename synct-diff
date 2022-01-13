@@ -1,7 +1,7 @@
 #!/bin/sh
 # Shows diffs for conflicts and provides options for resolving them
 # Also auto-merges jrnl conflicts if JOURNAL is set
-name=$(basename ${0%%-*})
+name="${0%%-*}"
 stats() {
   stat --format '%.10y %n %sB - birth %.10w' "$@"
 }

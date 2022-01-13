@@ -1,3 +1,8 @@
 #!/bin/sh
 # Move a conflicted/archived file to its original location
-mv "$1" "$(echo "$1" | synct-unarchive)"
+unarchived="$(echo "$1" | "${0%%-*}"-unarchive)"
+test -w "$1" && if test -f "$unarchived"
+  then test -w "$unarchived"
+  else test -w "$(dirname "$unarchived")"
+  fi || elevate=sudo
+$elevate mv -v "$1" "$unarchived"
