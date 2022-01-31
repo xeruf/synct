@@ -1,7 +1,10 @@
 #!/bin/sh
 # Trims the path of an archived or conflicted file to its original
 # For syncthing and Resilio Sync
-sed 's|\.sync/Archive/\(.\+\)\.[[:digit:]]\+$|\1|;
+if test "$#" -eq 0
+then cat
+else for arg; do realpath "$arg"; done
+fi | sed 's|\.sync/Archive/\(.\+\)\.[[:digit:]]\+$|\1|;
      s|\.sync/Archive/||;
      s|\.stversions/\(.*\)~[[:digit:]]\+-[[:digit:]]\+$|\1|;
      s|\.stfolder/archive/\(.*\)~[[:digit:]]\+-[[:digit:]]\+$|\1|;
