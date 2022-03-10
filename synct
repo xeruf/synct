@@ -3,10 +3,13 @@
 # Numeric argument is treated as depth or page
 # String as path/filename
 name="$(basename $0)"
+endpoints="browse|completion|file|ignores|need|status"
 test $# -eq 0 && echo "Usage:
   $name <command> [args...]
   $name <rest-endpoint>
-    The endpoint must no include /rest/
+    The endpoint consists of anything after /rest/
+    The following endpoints have convenience handling: $endpoints
+    For example, '$name browse data/music 2' browses path music in folder data with depth two
     Check out the api: https://docs.syncthing.net/dev/rest.html" && exit 1
 defaultfolder=data
 subscript="$(test -e "$0-$1" && echo "$0-$1" || which "$name-$1" 2>/dev/null)"
@@ -15,7 +18,7 @@ then shift && "$subscript" "$@"
 else
   apikey=$(grep apikey ${XDG_CONFIG_HOME:-$HOME/.config}/syncthing/config.xml | cut -d '>' -f2 | cut -d '<' -f1)
   case "$1" in
-    (browse|completion|file|ignores|need|status)
+    ($endpoints)
       for arg in "${@:2}"
       do case "$arg" in ([0-9]) depth=$arg;; (*) path="$arg";; esac
       done
