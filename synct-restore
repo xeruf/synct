@@ -1,8 +1,10 @@
 #!/bin/sh
 # Move a conflicted/archived file to its original location
-unarchived="$(echo "$1" | "${0%%-*}"-unarchive)"
-test -w "$1" && if test -f "$unarchived"
-  then test -w "$unarchived"
-  else test -w "$(dirname "$unarchived")"
-  fi || elevate=sudo
-$elevate mv -v "$1" "$unarchived"
+for arg; do
+  unarchived="$(realpath "$arg" | "${0%%-*}"-unarchive)"
+  test -w "$arg" && if test -f "$unarchived"
+    then test -w "$unarchived"
+    else test -w "$(dirname "$unarchived")"
+    fi || elevate=sudo
+  $elevate mv -vi "$arg" "$unarchived"
+done

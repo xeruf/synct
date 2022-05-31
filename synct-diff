@@ -1,6 +1,7 @@
 #!/bin/sh
 # Shows diffs for conflicts and provides options for resolving them
 # Also auto-merges jrnl conflicts if JOURNAL is set
+# Depends: synct dif
 name="${0%%-*}"
 stats() {
   stat --format '%.10y %n %sB - birth %.10w' "$@"
@@ -8,21 +9,26 @@ stats() {
 test "$1" = "-q" && quick=-q && shift
 if test "$#" -gt 0
   then
-    orig="$(echo "$1" | "$name-unarchive")"
-    if test -n "$quick"
-    then stats "$orig" "$1"
-    else
-      ( stats "$orig" "$1"; dif "$orig" "$@"  ) |
-        less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
-      test "$?" -eq "2" && exit 1
-      echo "y|r to restore, n|d to delete, m to merge"
-      read reply
-      case "$reply" in
-        (y|r) "$name-restore" "$1";;
-        (n|d) rm -v "$1";;
-        (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$1" && "${EDITOR:-vim}" "$orig" && rm "$1";;
-      esac
-    fi
+    for arg; do
+      orig="$(echo "$arg" | "$name-unarchive")"
+      if test -n "$quick"
+      then stats "$orig" "$arg"
+      else
+        if diff "$orig" "$arg" >/dev/null
+        then reply=d
+        else ( stats "$orig" "$arg"; dif "$orig" "$arg" ) |
+            less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
+          test "$?" -eq "2" && exit 1
+          echo "y|r to restore, n|d to delete, m to merge"
+          read reply
+        fi
+        case "$reply" in
+          (y|r) "$name-restore" "$arg";;
+          (n|d) rm -v "$arg";;
+          (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vim}" "$orig" && rm "$arg";;
+        esac
+      fi
+    done
   else
     test "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
     find -name '.stfolder' -prune -o -name '*sync-conflict*' -exec "$0" $quick '{}' \;
