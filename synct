@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 # Query local syncthing REST API
 # Numeric argument is treated as depth or page
 # String as path/filename
@@ -12,22 +12,22 @@ test $# -eq 0 && echo "Usage:
     For example, '$name browse data/music 2' browses path music in folder data with depth two
     Check out the api: https://docs.syncthing.net/dev/rest.html" && exit 1
 defaultfolder=data
-subscript="$(test -e "$0-$1" && echo "$0-$1" || which "$name-$1" 2>/dev/null)"
-if test -f "$subscript"
+if subscript="$(test -e "$0-$1" && echo "$0-$1" || which "$name-$1" 2>/dev/null)"
 then shift && "$subscript" "$@"
 else
-  apikey=$(grep apikey ${XDG_CONFIG_HOME:-$HOME/.config}/syncthing/config.xml | cut -d '>' -f2 | cut -d '<' -f1)
-  case "$1" in
-    ($endpoints)
-      for arg in "${@:2}"
-      do case "$arg" in ([0-9]) depth=$arg;; (*) path="$arg";; esac
-      done
-      query=$(echo "db/$1?folder=$(expr "${path%%/*}" \& "$path" \| "$defaultfolder")
-        $(expr levels \& "$1" = "browse" \| page)=${depth:-1}
-        $(case "$path" in (*/*) echo "$(expr "prefix" \& "$1" = "browse" \| "$1")=${path#*/}";; esac)" |
-          tr -d ' ' | paste -s -d'&');;
-    (*) query="$1";;
-  esac
+  apikey=$(grep apikey ${XDG_CONFIG_HOME:-$HOME/.config}/syncthing/config.xml | sed 's|^.*>\(.*\)<.*$|\1|')
+  query="$1"
   shift
+  case "$query" in
+    (browse|completion|file|ignores|need|status)
+      while test $# -gt 0
+      do case "$1" in ([0-9]) depth=$1;; (*) path="$1";; esac
+        shift
+      done
+      query=$(echo "db/$query?folder=$(expr "${path%%/*}" \& "$path" \| "$defaultfolder")
+        $(expr levels \& "$query" = "browse" \| page)=${depth:-1}
+        $(case "$path" in (*/*) echo "$(expr "prefix" \& "$query" = "browse" \| "$query")=${path#*/}";; esac)" |
+          tr -d ' ' | paste -s -d'&');;
+  esac
   curl --silent -H 'Content-Type: application/json' -H "X-API-Key: $apikey" "http://localhost:8384/rest/$query" "$@" | bat --style=numbers -l json
 fi
