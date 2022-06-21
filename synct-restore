@@ -1,9 +1,10 @@
 #!/bin/sh
 # Move a conflicted/archived file to its original location
+name="${0%-*}"
 for arg; do
   find "$arg" -type f -exec sh -c '
     file="{}"
-    unarchived="$(realpath "$file" | synct-unarchive)"
+    unarchived="$(realpath "$file" | '$name'-unarchive)"
     test -w "$file" && if test -f "$unarchived"
       then test -w "$unarchived"
       else mkdir -p "$(dirname "$unarchived")" && test -w "$(dirname "$unarchived")"
