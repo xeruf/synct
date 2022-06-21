@@ -2,7 +2,7 @@
 # Shows diffs for conflicts and provides options for resolving them
 # Also auto-merges jrnl conflicts if JOURNAL is set
 # Depends: synct dif
-name="${0%%-*}"
+name="${0%-*}"
 stats() {
   stat --format '%.10y %n %sB - birth %.10w' "$@"
 }
@@ -19,13 +19,14 @@ if test "$#" -gt 0
         else ( stats "$orig" "$arg"; dif "$orig" "$arg" ) |
             less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
           test "$?" -eq "2" && exit 1
-          echo "y|r to restore, n|d to delete, m to merge"
+          echo "y|r to restore, n|d to delete, m to git-merge, e to ediff"
           read reply
         fi
         case "$reply" in
           (y|r) "$name-restore" "$arg";;
           (n|d) rm -v "$arg";;
-          (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vim}" "$orig" && rm "$arg";;
+          (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vi}" "$orig" && rm "$arg";;
+          (e) emacsclient -a "" --eval "(ediff-files \"$orig\" \"$arg\")"
         esac
       fi
     done

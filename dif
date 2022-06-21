@@ -1,0 +1,2 @@
+#!/bin/sh -e
+for file in synct*; do dif /usr/bin/$file $file; done
