@@ -4,10 +4,10 @@
 # Depends: synct dif
 name="${0%-*}"
 stats() {
-  stat --format '%.10y %n %sB - birth %.10w' "$@"
+  stat --format '%.10y %n %s - birth %.10w' "$@" | numfmt --field=3 --to=iec-i --padding=6 --suffix=B
 }
 test "$1" = "-q" && quick=-q && shift
-if test "$#" -gt 0
+if test "$#" -gt 0 && test -f "$1"
   then
     for arg; do
       orig="$(echo "$arg" | $name-unarchive)"
@@ -16,15 +16,21 @@ if test "$#" -gt 0
       else
         if diff "$orig" "$arg" >/dev/null
         then reply=d
-        else ( stats "$orig" "$arg"; dif "$orig" "$arg" ) |
+        else
+          additions="$(diff --old-line-format="" --unchanged-line-format="" --minimal "$orig" "$arg")"
+          ( stats "$orig" "$arg"
+               highlight "Additions from $arg"
+               echo "$additions"
+               dif "$orig" "$arg" ) |
             less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
           test "$?" -eq "2" && exit 1
-          echo "y|r to restore, n|d to delete, m to git-merge, e to ediff"
+          echo "y|r to restore, n|d to delete, c to copy additions to clipboard, m to git-merge, e to ediff"
           read reply
         fi
         case "$reply" in
           (y|r) $name-restore "$arg";;
           (n|d) rm -v "$arg";;
+          (c) echo "$additions" | xclip -selection clipboard && mv -v "$arg" "/tmp/";;
           (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vi}" "$orig" && rm "$arg";;
           (e) emacsclient -a "" --eval "(ediff-files \"$orig\" \"$arg\")"
         esac
@@ -32,5 +38,5 @@ if test "$#" -gt 0
     done
   else
     test "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
-    find -name '.stfolder' -prune -o -name '*sync-conflict*' -exec "$0" $quick '{}' \;
+    find "$@" -name '.stfolder' -prune -o -name '*sync-conflict*' -exec "$0" $quick '{}' \;
 fi
