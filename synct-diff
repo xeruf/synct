@@ -19,7 +19,9 @@ if test "$#" -gt 0 && test -f "$1"
         else
           ( stats "$orig" "$arg"
                highlight "Additions from $arg"
-               diff "$orig" "$arg" --old-group-format="" --new-line-format="$(printf "\033[32m%%L\033[0m")" | sed -n "/^$(printf "\033")/,\$p"
+               # TODO use sed to trim context
+               # TODO check if "added" line is contained in removed line
+               diff "$orig" "$arg" --minimal --old-group-format="" --changed-group-format="%c'\033'[31m%<%c'\033'[32m%>%c'\033'[0m" | sed -n "/^$(printf "\033")/,\$p"
                dif "$orig" "$arg" ) |
             less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
           test "$?" -eq "2" && exit 1
@@ -28,7 +30,8 @@ if test "$#" -gt 0 && test -f "$1"
         fi
         case "$reply" in
           (y|r) $name-restore "$arg";;
-          (n|d) rm -v "$arg";;
+          (n|d) mv -v "$arg" /tmp;;
+          (D) rm -v "$arg";;
           (c) diff --old-line-format="" --unchanged-line-format="" "$orig" "$arg" | xclip -selection clipboard && mv -v "$arg" "/tmp/";;
           (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vi}" "$orig" && rm "$arg";;
           (e) emacsclient -a "" --eval "(ediff-files \"$orig\" \"$arg\")"

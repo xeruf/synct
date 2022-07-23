@@ -6,7 +6,7 @@ for arg; do
     file="{}"
     unarchived="$(realpath "$file" | '$name'-unarchive)"
     test -w "$file" && if test -f "$unarchived"
-      then test -w "$unarchived"
+      then test -w "$unarchived" && mv -v "$unarchived" /tmp
       else mkdir -p "$(dirname "$unarchived")" && test -w "$(dirname "$unarchived")"
       fi || elevate=sudo
     $elevate mv -vi "$file" "$unarchived"' \;
