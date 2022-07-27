@@ -34,7 +34,7 @@ if test "$#" -gt 0 && test -f "$1"
           (D) rm -v "$arg";;
           (c) diff --old-line-format="" --unchanged-line-format="" "$orig" "$arg" | xclip -selection clipboard && mv -v "$arg" "/tmp/";;
           (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vi}" "$orig" && rm "$arg";;
-          (e) emacsclient -a "" --eval "(ediff-files \"$orig\" \"$arg\")"
+          (e) emacsclient -a "" --tty --eval "(ediff-files \"$orig\" \"$arg\")"
         esac
       fi
     done
