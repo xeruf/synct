@@ -11,11 +11,15 @@ if test "$#" -gt 0 && test -f "$1"
   then
     for arg; do
       orig="$(echo "$arg" | $name-unarchive)"
+      test "$orig" = "$arg" &&
+        echo "Can't unarchive $arg" >&2 &&
+        continue
       if test -n "$quick"
       then stats "$orig" "$arg"
       else
         if diff "$orig" "$arg" >/dev/null
-        then reply=d
+        then echo "Deleting '$arg' as it is equal to '$orig'" >&2
+          reply=d
         else
           ( stats "$orig" "$arg"
                highlight "Additions from $arg"
@@ -39,6 +43,6 @@ if test "$#" -gt 0 && test -f "$1"
       fi
     done
   else
-    test "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
+    test -d "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
     find "$@" -name '.stfolder' -prune -o -name '*sync-conflict*' -exec "$0" $quick '{}' \;
 fi
