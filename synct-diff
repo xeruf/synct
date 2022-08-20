@@ -2,6 +2,7 @@
 # Shows diffs for conflicts and provides options for resolving them
 # Also auto-merges jrnl conflicts if JOURNAL is set
 # Depends: synct dif
+# Optional: emacs wiked-diff
 name="${0%-*}"
 stats() {
   stat --format '%.10y %n %s - birth %.10w' "$@" | numfmt --field=3 --to=iec-i --padding=6 --suffix=B
@@ -22,12 +23,16 @@ if test "$#" -gt 0 && test -f "$1"
           reply=d
         else
           ( stats "$orig" "$arg"
-               highlight "Additions from $arg"
-               # TODO use sed to trim context
-               # TODO check if "added" line is contained in removed line
-               diff "$orig" "$arg" --minimal --old-group-format="" --changed-group-format="%c'\033'[31m%<%c'\033'[32m%>%c'\033'[0m" | sed -n "/^$(printf "\033")/,\$p"
-               dif "$orig" "$arg" ) |
-            less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
+              if which wiked-diff >&2 >/dev/null
+              then wiked-diff "$orig" "$arg"
+              else
+                highlight "Additions from $arg"
+                # TODO use sed to trim context
+                # TODO check if "added" line is contained in removed line
+                diff "$orig" "$arg" --minimal --old-group-format="" --changed-group-format="%c'\033'[31m%<%c'\033'[32m%>%c'\033'[0m" | sed -n "/^$(printf "\033")/,\$p"
+                dif "$orig" "$arg"
+              fi
+          ) | less --RAW-CONTROL-CHARS --quit-on-intr --quit-if-one-screen
           test "$?" -eq "2" && exit 1
           echo "y|r to restore, n|d to delete, c to copy additions to clipboard, m to git-merge, e to ediff"
           read reply
@@ -45,5 +50,5 @@ if test "$#" -gt 0 && test -f "$1"
   else
     test -d "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
     find "$@" -path "*/.git/index.sync-conflict*" -delete
-    find "$@" -name '.stfolder' -prune -o -name '*sync-conflict*' -o -name "#*#" -exec "$0" $quick '{}' \;
+    find "$@" -name '.stfolder' -prune -o \( -name '*sync-conflict*' -o -name "#*#" \) -exec "$0" $quick '{}' \;
 fi
