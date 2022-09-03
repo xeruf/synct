@@ -12,4 +12,6 @@ fi | sed 's|\.sync/Archive/\(.\+\)\.[[:digit:]]\+$|\1|;
      s|\.sync-conflict-[[:digit:]]\+-[[:digit:]]\+-[A-Z0-9]\+||
      s|\B#\(.*\)#$|\1|
      s|\.pacnew$||
+     s|\.pacsave$||
+     s|\.bak$||
      s|\~$||'
