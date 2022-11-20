@@ -50,5 +50,5 @@ if test "$#" -gt 0 && test -f "$1"
   else
     test -d "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
     find "$@" -path "*/.git/index.sync-conflict*" -delete
-    find "$@" -name '.stfolder' -prune -o \( -name '*sync-conflict*' -o -name "*.pacnew" -o -name "#*#" -o -name "*.bak" \) -exec "$0" $quick '{}' \;
+    find "$@" -name '.stfolder' -prune -o -type f \( -name '*sync-conflict*' -o -name "*.pacnew" -o -name "#*#" -o -name "*.bak" \) -exec "$0" $quick '{}' \;
 fi

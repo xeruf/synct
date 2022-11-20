@@ -21,12 +21,13 @@ else
   case "$query" in
     (browse|completion|file|ignores|need|status)
       while test $# -gt 0
-      do case "$1" in ([0-9]) depth=$1;; (*) path="$1";; esac
+      do case "$1" in ([0-9]) depth=$1;; (*) folderpath="$1";; esac
         shift
       done
-      query=$(echo "db/$query?folder=$(expr "${path%%/*}" \& "$path" \| "$defaultfolder")
+      # TODO browse PWD by default
+      query=$(echo "db/$query?folder=$(expr "${folderpath%%/*}" \& "$folderpath" \| "$defaultfolder")
         $(expr levels \& "$query" = "browse" \| page)=${depth:-1}
-        $(case "$path" in (*/*) echo "$(expr "prefix" \& "$query" = "browse" \| "$query")=${path#*/}";; esac)" |
+        $(case "$folderpath" in (*/*) echo "$(expr "prefix" \& "$query" = "browse" \| "$query")=${folderpath#*/}";; esac)" |
           tr -d ' ' | paste -s -d'&');;
   esac
   curl --silent -H 'Content-Type: application/json' -H "X-API-Key: $apikey" "http://localhost:8384/rest/$query" "$@" | bat --style=numbers -l json
