@@ -20,11 +20,11 @@ else
   shift
   case "$query" in
     (browse|completion|file|ignores|need|status)
+      test $# -eq 0 && folderpath=$(synct config/folders | jq --raw-output --arg pattern "$PWD" '.[] as {$id, $path} | $pattern | select(startswith($path)) | $id + .[$path | length:]')
       while test $# -gt 0
       do case "$1" in ([0-9]) depth=$1;; (*) folderpath="$1";; esac
         shift
       done
-      # TODO browse PWD by default
       query=$(echo "db/$query?folder=$(expr "${folderpath%%/*}" \& "$folderpath" \| "$defaultfolder")
         $(expr levels \& "$query" = "browse" \| page)=${depth:-1}
         $(case "$folderpath" in (*/*) echo "$(expr "prefix" \& "$query" = "browse" \| "$query")=${folderpath#*/}";; esac)" |
