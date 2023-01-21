@@ -1,8 +1,10 @@
 #!/bin/sh
 # Shows diffs for conflicts and provides options for resolving them
 # Also auto-merges jrnl conflicts if JOURNAL is set
+# Args: Paths to check, -q to show stats rather than diff
 # Depends: synct dif
-# Optional: emacs wiked-diff
+# OptDepends: emacs wiked-diff
+# TODO use diff --from-file for dup detection
 name="${0%-*}"
 stats() {
   stat --format '%.10y %n %s - birth %.10w' "$@" | numfmt --field=3 --to=iec-i --padding=6 --suffix=B
@@ -13,7 +15,7 @@ if test "$#" -gt 0 && test -f "$1"
     for arg; do
       orig="$(echo "$arg" | $name-unarchive)"
       test "$orig" = "$arg" &&
-        echo "Can't unarchive $arg" >&2 &&
+        echo "Unable to determine original filename for '$arg'" >&2 &&
         continue
       if test -n "$quick"
       then stats "$orig" "$arg"
