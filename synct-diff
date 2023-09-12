@@ -4,7 +4,7 @@
 # Args: Paths to check, -q to show stats rather than diff
 # Depends: synct dif
 # OptDepends: emacs wiked-diff
-# TODO use diff --from-file for dup detection
+# TODO use diff --from-file / rmlint for dup detection
 name="${0%-*}"
 stats() {
   stat --format '%.10y %n %s - birth %.10w' "$@" | numfmt --field=3 --to=iec-i --padding=6 --suffix=B
@@ -47,10 +47,11 @@ if test "$#" -gt 0 && test -f "$1"
           (m) touch /tmp/empty && git merge-file "$orig" /tmp/empty "$arg" && "${EDITOR:-vi}" "$orig" && rm "$arg";;
           (e) emacsclient -a "" --tty --eval "(ediff-files \"$orig\" \"$arg\")"
         esac
+        printf "%$(tput cols)s\n" | sed 's| |·|g'
       fi
     done
   else
     test -d "$JOURNAL" && find "$JOURNAL" -name '*sync-conflict*.txt' -exec sh -c 'basename {} | cut -d. -f1 | xargs -i% jrnl % --import --file {}' \; -delete
-    find "$@" -path "*/.git/index.sync-conflict*" -delete
+    find "$@" -path "*/.git/**/index.sync-conflict*" -delete
     find "$@" -name '.stfolder' -prune -o -type f \( -name '*sync-conflict*' -o -name "*.pacnew" -o -name "#*#" -o -name "*.bak" \) -exec "$0" $quick '{}' \;
 fi
