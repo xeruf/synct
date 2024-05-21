@@ -16,18 +16,20 @@ Simply move `synct` and any desired extension into your PATH.
 I maintain an AUR package `synct-git` for it, too.
 
 ### Dependencies
-- grep curl tr paste
-- bat for highlighted JSON pagination
-- st-diff: stat git
+- `grep` `curl` `tr` `paste`
+- `bat` for highlighted JSON pagination
+- synct-diff: `stat` `git`
 
-## Testing
+## Development Notes
+
+TODO: https://www.rafa.ee/articles/resolve-syncthing-conflicts-using-three-way-merge/
 
 `dif` is a simple helper script to check if the system-wide installed binaries 
 match the versions in the repo.
 
 ### synct-unarchive examples
 
-A helper to remove different suffixes for archived/.
+A helper to remove pre- and suffixes for archived/conflicted/backup files to find the original.
 It also enables `synct-diff` to operate on editor backup files from vim, emacs and the like
 as well as Resilio Sync (formerly BTSync) archives.
 
