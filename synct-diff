@@ -7,7 +7,7 @@
 # TODO use diff --from-file / rmlint for dup detection
 name="${0%-*}"
 stats() {
-  stat --format '%.10y %n %s - birth %.10w' "$@" | numfmt --field=3 --to=iec-i --padding=6 --suffix=B
+  stat --format '%.10y %s %n - birth %.10w' "$@" | numfmt --field=2 --to=iec-i --padding=6 --suffix=B
 }
 test "$1" = "-q" && quick=-q && shift
 if test "$#" -gt 0 && test -f "$1"
